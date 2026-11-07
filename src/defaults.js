@@ -12,6 +12,12 @@ export const DEFAULT_DATABASES = {
 
 export const DEFAULT_QUERY_FILE = { name: 'practice.sql', content: practiceSql }
 
+// Images used by the notes, e.g. ![…](images/db-relationship.svg) -> bundled URL
+const imageUrls = import.meta.glob('../content/notes/images/*', { eager: true, query: '?url', import: 'default' })
+export const NOTE_IMAGES = Object.fromEntries(
+  Object.entries(imageUrls).map(([path, url]) => [path.replace('../content/notes/', ''), url]),
+)
+
 export const NOTES = [
   { id: 'app-guide', name: 'APP-GUIDE.md', content: appGuide },
   { id: 'readme', name: 'README.MD', content: readme },

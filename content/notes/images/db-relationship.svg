@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="640" viewBox="0 0 860 640" font-family="Segoe UI, Helvetica, Arial, sans-serif" text-anchor="middle">
+  <title>How Database, DBMS, RDBMS and SQL relate</title>
+  <rect x="1" y="1" width="858" height="638" rx="12" fill="#fdfdfd" stroke="#e1e4e8" stroke-width="2"/>
+  <text x="430" y="40" font-size="22" font-weight="700" fill="#1f2328">Understand the relationship</text>
+
+  <rect x="20" y="62" width="820" height="106" rx="10" fill="#e3edfd"/>
+  <text x="430" y="100" font-size="20" font-weight="700" fill="#1f2328">Database</text>
+  <text x="430" y="130" font-size="16" fill="#57606a">Organized collection of data</text>
+  <text x="430" y="155" font-size="13" fill="#57606a">Example: Employee database</text>
+
+  <path d="M430 176 v22 m-6 -7 l6 7 l6 -7" fill="none" stroke="#57606a" stroke-width="1.6"/>
+
+  <rect x="20" y="206" width="820" height="106" rx="10" fill="#dff3ec"/>
+  <text x="430" y="244" font-size="20" font-weight="700" fill="#1f2328">DBMS</text>
+  <text x="430" y="274" font-size="16" fill="#57606a">Software that manages the database</text>
+  <text x="430" y="299" font-size="13" fill="#57606a">DBMS is the general category · Examples: MySQL, PostgreSQL, MongoDB</text>
+
+  <path d="M430 320 v22 m-6 -7 l6 7 l6 -7" fill="none" stroke="#57606a" stroke-width="1.6"/>
+
+  <rect x="20" y="350" width="820" height="106" rx="10" fill="#dff3ec"/>
+  <text x="430" y="388" font-size="20" font-weight="700" fill="#1f2328">RDBMS</text>
+  <text x="430" y="418" font-size="16" fill="#57606a">A type of DBMS that organizes data into related tables</text>
+  <text x="430" y="443" font-size="13" fill="#57606a">Example: MySQL, PostgreSQL, Oracle</text>
+
+  <path d="M430 464 v22 m-6 -7 l6 7 l6 -7" fill="none" stroke="#57606a" stroke-width="1.6"/>
+
+  <rect x="20" y="494" width="820" height="126" rx="10" fill="#fcefdf"/>
+  <text x="430" y="532" font-size="20" font-weight="700" fill="#1f2328">SQL</text>
+  <text x="430" y="562" font-size="16" fill="#57606a">Language used to communicate with RDBMS</text>
+  <text x="430" y="587" font-size="13" fill="#57606a">SELECT, INSERT, UPDATE, DELETE</text>
+  <text x="430" y="608" font-size="12" fill="#8c959f">(MongoDB is a NoSQL DBMS: no tables, no SQL)</text>
+</svg>

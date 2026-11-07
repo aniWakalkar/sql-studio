@@ -3,6 +3,7 @@ import * as monaco from 'monaco-editor'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
+import { NOTE_IMAGES } from '../defaults.js'
 
 const hastText = (node) => (!node ? '' : node.type === 'text' ? node.value : (node.children ?? []).map(hastText).join(''))
 
@@ -54,6 +55,7 @@ function CodeBlock({ node, children, onRun, onOpenInEditor }) {
 export default function NoteView({ note, notes, onRun, onOpenInEditor, onOpenNote }) {
   const components = {
     pre: (props) => <CodeBlock {...props} onRun={onRun} onOpenInEditor={onOpenInEditor} />,
+    img: ({ src = '', alt }) => <img src={NOTE_IMAGES[src.replace(/^\.\//, '')] ?? src} alt={alt} />,
     a: ({ href = '', children }) => {
       if (/^https?:/.test(href)) return <a href={href} target="_blank" rel="noreferrer">{children}</a>
       const target = notes.find((n) => href.toLowerCase().endsWith(n.name.toLowerCase()))

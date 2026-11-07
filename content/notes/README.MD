@@ -1,5 +1,22 @@
 # SQL – Interview Notes
 
+![How Database, DBMS, RDBMS and SQL relate](images/db-relationship.svg)
+
+## The Big Picture
+
+| Term | Meaning | Examples |
+|------|---------|----------|
+| **Database** | A place / organized collection where data is stored | Employee database |
+| **DBMS** | Software used to create, access, update, delete and manage databases | MySQL, PostgreSQL, Oracle, MongoDB |
+| **RDBMS** | A type of DBMS that stores data in **tables** and establishes **relationships** between them | MySQL, PostgreSQL, Oracle |
+| **SQL** | A **language** used to interact with relational databases | `SELECT`, `INSERT`, `UPDATE`, `DELETE` |
+| **NoSQL DBMS** | A DBMS that does **not** use tables (documents, key-value, graph…) | MongoDB |
+
+> **Interview tip:** Every RDBMS is a DBMS, but not every DBMS is an RDBMS (MongoDB is a DBMS, not an RDBMS).
+> MySQL, PostgreSQL and Oracle are **software**; SQL is the **language** they understand.
+
+---
+
 ## 1. What is a Database?
 
 A **database** is an organized collection of data that can be easily stored, accessed, managed and updated.
