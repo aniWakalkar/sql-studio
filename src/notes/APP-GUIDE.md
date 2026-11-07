@@ -25,6 +25,25 @@ Your query files and data are saved automatically **in this browser**.
 
 If a query has an error, the wrong word gets a **red underline** in the editor. Hover over it to read the message.
 
+The Output panel has two tabs:
+- **RESULT**: the query you just ran
+- **HISTORY**: every query you ran since the page was opened. Click one to see its result again. History is cleared when you refresh the page.
+
+---
+
+## ER diagram
+
+Hover over a table or database in the Explorer and click the **diagram icon** (next to ▶):
+
+| Where | What you see |
+|-------|--------------|
+| Next to a **table** | That table in the middle, the tables that point to it on the left, and the tables it points to on the right |
+| Next to a **database** | Every table in the database |
+
+- 🔑 = primary key, 🔗 = foreign key. Each arrow goes from a foreign key to the primary key it points to.
+- Click a table's name in the diagram to see the diagram for that table.
+- The diagram shrinks to fit the panel. Click **100%** to see it full size.
+
 Try it:
 
 ```sql
@@ -53,6 +72,7 @@ These work just like in VS Code.
 | <kbd>Ctrl</kbd>+<kbd>G</kbd> | Go to line |
 | <kbd>F1</kbd> | Command palette (all editor commands) |
 | <kbd>Ctrl</kbd>+<kbd>B</kbd> | Show / hide the Explorer |
+| <kbd>Ctrl</kbd>+<kbd>J</kbd> | Show / hide the Output panel (it also opens by itself when you run a query) |
 | <kbd>Alt</kbd>+<kbd>N</kbd> | New query file |
 | <kbd>Alt</kbd>+<kbd>W</kbd> | Close tab |
 | <kbd>Ctrl</kbd>+<kbd>S</kbd> | Save (files also save automatically) |

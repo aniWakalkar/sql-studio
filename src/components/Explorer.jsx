@@ -43,7 +43,7 @@ function RowButton({ icon, title, onClick }) {
   )
 }
 
-function TableNode({ db, table, expanded, onToggle, onRunTable, onInsert }) {
+function TableNode({ db, table, expanded, onToggle, onRunTable, onOpenEr, onInsert }) {
   const key = `table:${db}.${table.name}`
   const open = expanded.has(key)
   return (
@@ -60,6 +60,7 @@ function TableNode({ db, table, expanded, onToggle, onRunTable, onInsert }) {
         <span className="label">{table.name}</span>
         {table.rowCount != null && <span className="dim">{table.rowCount} rows</span>}
         <span className="row-actions">
+          <RowButton icon="type-hierarchy" title={`ER diagram: ${table.name} and its connected tables`} onClick={() => onOpenEr(db, table.name)} />
           <RowButton icon="play" title={`Run SELECT * FROM ${table.name}`} onClick={() => onRunTable(db, table.name)} />
         </span>
       </div>
@@ -86,7 +87,7 @@ function TableNode({ db, table, expanded, onToggle, onRunTable, onInsert }) {
   )
 }
 
-function DatabaseNode({ name, active, schema, expanded, onToggle, onSelectDb, onResetDb, onDeleteDb, onRunTable, onInsert }) {
+function DatabaseNode({ name, active, schema, expanded, onToggle, onSelectDb, onResetDb, onDeleteDb, onRunTable, onOpenEr, onInsert }) {
   const key = `db:${name}`
   const open = expanded.has(key)
   const tables = Array.isArray(schema) ? schema : null
@@ -107,6 +108,7 @@ function DatabaseNode({ name, active, schema, expanded, onToggle, onSelectDb, on
         {tables && <span className="badge">{tables.length} {tables.length === 1 ? 'table' : 'tables'}</span>}
         {active && <i className="codicon codicon-check active-check" title="Active database" />}
         <span className="row-actions">
+          <RowButton icon="type-hierarchy" title="ER diagram of all tables" onClick={() => onOpenEr(name)} />
           <RowButton icon="discard" title="Reset database" onClick={() => onResetDb(name)} />
           <RowButton icon="trash" title="Delete database" onClick={() => onDeleteDb(name)} />
         </span>
@@ -123,7 +125,7 @@ function DatabaseNode({ name, active, schema, expanded, onToggle, onSelectDb, on
             <div className="tree-row tree-note" style={{ paddingLeft: 30 }}>No tables yet. Try CREATE TABLE.</div>
           )}
           {tables?.map((t) => (
-            <TableNode key={t.name} db={name} table={t} expanded={expanded} onToggle={onToggle} onRunTable={onRunTable} onInsert={onInsert} />
+            <TableNode key={t.name} db={name} table={t} expanded={expanded} onToggle={onToggle} onRunTable={onRunTable} onOpenEr={onOpenEr} onInsert={onInsert} />
           ))}
         </>
       )}
@@ -132,7 +134,7 @@ function DatabaseNode({ name, active, schema, expanded, onToggle, onSelectDb, on
 }
 
 export default function Explorer({
-  databases, activeDb, schemas, onSelectDb, onRefresh, onNewDb, onResetDb, onDeleteDb, onRunTable, onInsert,
+  databases, activeDb, schemas, onSelectDb, onRefresh, onNewDb, onResetDb, onDeleteDb, onRunTable, onOpenEr, onInsert,
   files, notes, activeTab, onOpenFile, onNewFile, onRenameFile, onDeleteFile, onOpenNote,
 }) {
   const [expanded, setExpanded] = useState(() => new Set([`db:${activeDb}`]))
@@ -167,6 +169,7 @@ export default function Explorer({
               onResetDb={onResetDb}
               onDeleteDb={onDeleteDb}
               onRunTable={onRunTable}
+              onOpenEr={onOpenEr}
               onInsert={onInsert}
             />
           ))}

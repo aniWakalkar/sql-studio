@@ -109,17 +109,14 @@ function Block({ block }) {
   )
 }
 
-function RunView({ run, latest }) {
-  const [open, setOpen] = useState(latest)
-  // When a newer run arrives, fold this one away (click its header to open it again)
-  useEffect(() => {
-    if (!latest) setOpen(false)
-  }, [latest])
+// collapsible = false: the Result tab, always open; true: an entry in the History tab
+function RunView({ run, collapsible, latest }) {
+  const [open, setOpen] = useState(!collapsible)
   const failed = run.blocks.some((b) => b.kind === 'error')
   return (
-    <div className={`run ${open ? 'open' : ''}`}>
-      <div className="run-header" onClick={() => setOpen(!open)}>
-        <i className={`codicon codicon-chevron-${open ? 'down' : 'right'}`} />
+    <div className={`run ${open ? 'open' : ''} ${collapsible ? '' : 'fixed'}`}>
+      <div className="run-header" onClick={() => collapsible && setOpen(!open)}>
+        {collapsible && <i className={`codicon codicon-chevron-${open ? 'down' : 'right'}`} />}
         <i className={`codicon codicon-${failed ? 'error run-failed' : 'pass run-ok'}`} />
         <span>{run.at.toLocaleTimeString()}</span>
         <span className="dim">· {run.db}</span>
@@ -128,6 +125,7 @@ function RunView({ run, latest }) {
             · {run.statementCount} statement{run.statementCount === 1 ? '' : 's'} · {formatMs(run.ms)}
           </span>
         )}
+        {latest && <span className="pill">latest</span>}
       </div>
       {open && (
         <div className="run-body">
@@ -140,19 +138,52 @@ function RunView({ run, latest }) {
   )
 }
 
-export default function OutputPane({ runs, running, onClear }) {
+// runs live only in memory, so the history is cleared automatically on page refresh
+export default function OutputPane({ runs, running, onClearHistory, onClose }) {
+  const [view, setView] = useState('result')
+  const latest = runs[0]
+
+  // A new run always brings you back to its result
+  useEffect(() => {
+    setView('result')
+  }, [latest?.id])
+
   return (
     <section className="output">
       <div className="panel-header">
-        <span className="panel-title">OUTPUT</span>
+        <button className={`panel-tab ${view === 'result' ? 'active' : ''}`} onClick={() => setView('result')}>
+          RESULT
+        </button>
+        <button className={`panel-tab ${view === 'history' ? 'active' : ''}`} onClick={() => setView('history')}>
+          HISTORY
+          {runs.length > 0 && <span className="badge">{runs.length}</span>}
+        </button>
         {running && <i className="codicon codicon-loading codicon-modifier-spin" />}
         <span className="spacer" />
-        <button className="icon-btn" title="Clear output" onClick={onClear} disabled={!runs.length}>
-          <i className="codicon codicon-clear-all" />
+        {view === 'history' && (
+          <button className="icon-btn" title="Clear history" onClick={onClearHistory} disabled={!runs.length}>
+            <i className="codicon codicon-clear-all" />
+          </button>
+        )}
+        <button className="icon-btn" title="Close panel (Ctrl+J). It opens again when you run a query." onClick={onClose}>
+          <i className="codicon codicon-close" />
         </button>
       </div>
       <div className="output-body">
-        {!runs.length && (
+        {view === 'result' && latest && <RunView key={latest.id} run={latest} collapsible={false} />}
+        {view === 'history' && (
+          <>
+            <div className="history-note">
+              <i className="codicon codicon-info" /> Every query you ran in this session. Click one to see its result.
+              History is cleared when you refresh the page.
+            </div>
+            {runs.map((run, i) => (
+              <RunView key={run.id} run={run} collapsible latest={i === 0} />
+            ))}
+            {!runs.length && <div className="output-empty"><p>No history yet.</p></div>}
+          </>
+        )}
+        {view === 'result' && !latest && (
           <div className="output-empty">
             <i className="codicon codicon-output" />
             <p>Results will appear here.</p>
@@ -163,9 +194,6 @@ export default function OutputPane({ runs, running, onClear }) {
             </ul>
           </div>
         )}
-        {runs.map((run, i) => (
-          <RunView key={run.id} run={run} latest={i === 0} />
-        ))}
       </div>
     </section>
   )

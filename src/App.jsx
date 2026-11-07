@@ -12,7 +12,7 @@ import { DEFAULT_QUERY_FILE, NOTES } from './defaults.js'
 import { runScript } from './runner.js'
 import { splitStatements } from './sqlSplit.js'
 import { setCompletionSchema } from './sqlLanguage.js'
-import { clamp, formatMs, isNoteTab, load, modelPath, newId, noteTabId, quoteIdent, save } from './util.js'
+import { clamp, erTabId, formatMs, isErTab, isNoteTab, isViewTab, load, modelPath, newId, noteTabId, parseErTab, quoteIdent, save } from './util.js'
 
 function loadWorkspace() {
   let files = load('files')
@@ -68,7 +68,7 @@ export default function App() {
   const [files, setFiles] = useState(initial.files)
   const [openTabs, setOpenTabs] = useState(initial.openTabs)
   const [activeTab, setActiveTab] = useState(initial.activeTab)
-  const [lastSqlTab, setLastSqlTab] = useState(isNoteTab(initial.activeTab) ? null : initial.activeTab)
+  const [lastSqlTab, setLastSqlTab] = useState(isViewTab(initial.activeTab) ? null : initial.activeTab)
   const [runs, setRuns] = useState([])
   const [running, setRunning] = useState(false)
   const [status, setStatus] = useState({ text: 'Starting PostgreSQL…', busy: true })
@@ -77,6 +77,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [leftWidth, setLeftWidth] = useState(() => load('leftWidth', 280))
   const [rightWidth, setRightWidth] = useState(() => load('rightWidth', 560))
+  const [outputOpen, setOutputOpen] = useState(() => load('outputOpen', true))
 
   const editorRef = useRef(null)
   const runningRef = useRef(false)
@@ -91,8 +92,9 @@ export default function App() {
   useEffect(() => save('activeDb', activeDb), [activeDb])
   useEffect(() => save('leftWidth', leftWidth), [leftWidth])
   useEffect(() => save('rightWidth', rightWidth), [rightWidth])
+  useEffect(() => save('outputOpen', outputOpen), [outputOpen])
   useEffect(() => {
-    if (activeTab && !isNoteTab(activeTab)) setLastSqlTab(activeTab)
+    if (activeTab && !isViewTab(activeTab)) setLastSqlTab(activeTab)
   }, [activeTab])
   useEffect(() => {
     const tables = schemas[activeDb]
@@ -109,7 +111,7 @@ export default function App() {
   }, [])
 
   const addRun = useCallback((run) => {
-    setRuns((list) => [{ id: ++runCounter, at: new Date(), statementCount: 0, ms: 0, ...run }, ...list].slice(0, 30))
+    setRuns((list) => [{ id: ++runCounter, at: new Date(), statementCount: 0, ms: 0, ...run }, ...list].slice(0, 50))
   }, [])
 
   const notify = useCallback(
@@ -183,6 +185,7 @@ export default function App() {
         selectDb(result.dbName)
         result.touched.filter((n) => live.current.databases.includes(n)).forEach(refreshSchema)
         addRun({ db: result.dbName, blocks: result.blocks, ms, statementCount: result.statementCount })
+        setOutputOpen(true) // never hide a fresh result
         const error = result.blocks.find((b) => b.kind === 'error')
         if (error && source) markError(source, error)
         setStatus(
@@ -207,7 +210,7 @@ export default function App() {
    */
   const runFromEditor = useCallback(
     (mode) => {
-      if (isNoteTab(live.current.activeTab)) return
+      if (isViewTab(live.current.activeTab)) return
       const editor = editorRef.current
       const model = editor?.getModel()
       if (!model) return
@@ -255,6 +258,23 @@ export default function App() {
     if (live.current.activeTab === id) setActiveTab(next[i] ?? next[i - 1] ?? null)
   }, [])
 
+  // ER diagram of a whole database (table = null) or of one table and the tables connected to it
+  const openEr = useCallback(
+    (db, table = null) => {
+      if (!live.current.schemas[db]) refreshSchema(db)
+      openTab(erTabId(db, table))
+    },
+    [openTab, refreshSchema],
+  )
+
+  // Clicking a table inside a diagram shows that table's diagram in the same tab
+  const focusEr = useCallback((fromId, db, table) => {
+    const target = erTabId(db, table)
+    if (target === fromId) return
+    setOpenTabs((tabs) => (tabs.includes(target) ? tabs.filter((t) => t !== fromId) : tabs.map((t) => (t === fromId ? target : t))))
+    setActiveTab(target)
+  }, [])
+
   const newFile = useCallback(
     (content = '') => {
       const names = new Set(live.current.files.map((f) => f.name))
@@ -295,7 +315,7 @@ export default function App() {
   const openInEditor = useCallback(
     (sql) => {
       const { openTabs: tabs, files: fileList, lastSqlTab: last } = live.current
-      const target = tabs.includes(last) ? last : tabs.find((t) => !isNoteTab(t) && fileList.some((f) => f.id === t))
+      const target = tabs.includes(last) ? last : tabs.find((t) => !isViewTab(t) && fileList.some((f) => f.id === t))
       if (!target) {
         newFile(sql)
         return
@@ -310,7 +330,7 @@ export default function App() {
     const sql = pendingInsertRef.current
     const editor = editorRef.current
     const model = editor?.getModel()
-    if (sql == null || !model || isNoteTab(activeTab)) return
+    if (sql == null || !model || isViewTab(activeTab)) return
     pendingInsertRef.current = null
     const value = model.getValue()
     const prefix = !value.trim() ? '' : value.endsWith('\n') ? '\n' : '\n\n'
@@ -327,7 +347,7 @@ export default function App() {
 
   const insertAtCursor = useCallback((text) => {
     const editor = editorRef.current
-    if (!editor?.getModel() || isNoteTab(live.current.activeTab)) return
+    if (!editor?.getModel() || isViewTab(live.current.activeTab)) return
     editor.executeEdits('explorer', [{ range: editor.getSelection(), text, forceMoveMarkers: true }])
     editor.focus()
   }, [])
@@ -460,6 +480,9 @@ export default function App() {
       } else if (ctrl && !e.shiftKey && key === 'b') {
         e.preventDefault()
         setSidebarOpen((open) => !open)
+      } else if (ctrl && !e.shiftKey && key === 'j') {
+        e.preventDefault()
+        setOutputOpen((open) => !open)
       } else if (e.altKey && !ctrl && key === 'n') {
         e.preventDefault()
         shortcuts.current.newFile()
@@ -480,14 +503,19 @@ export default function App() {
         const note = NOTES.find((n) => noteTabId(n.id) === id)
         return note && { id, name: note.name, kind: 'note' }
       }
+      if (isErTab(id)) {
+        const { db, table } = parseErTab(id)
+        return databases.includes(db) && { id, name: `ER: ${table ?? db}`, kind: 'er' }
+      }
       const file = files.find((f) => f.id === id)
       return file && { id, name: file.name, kind: 'sql' }
     })
     .filter(Boolean)
   const sqlTabIds = tabs.filter((t) => t.kind === 'sql').map((t) => t.id)
-  const editorFileId = isNoteTab(activeTab) ? (sqlTabIds.includes(lastSqlTab) ? lastSqlTab : sqlTabIds[0]) : activeTab
+  const editorFileId = isViewTab(activeTab) ? (sqlTabIds.includes(lastSqlTab) ? lastSqlTab : sqlTabIds[0]) : activeTab
   const editorFile = files.find((f) => f.id === editorFileId) ?? null
   const activeNote = isNoteTab(activeTab) ? NOTES.find((n) => noteTabId(n.id) === activeTab) : null
+  const activeEr = isErTab(activeTab) && tabs.some((t) => t.id === activeTab) ? { id: activeTab, ...parseErTab(activeTab) } : null
 
   return (
     <div className="app">
@@ -510,6 +538,7 @@ export default function App() {
                 onResetDb={resetDb}
                 onDeleteDb={deleteDb}
                 onRunTable={runTable}
+                onOpenEr={openEr}
                 onInsert={insertAtCursor}
                 files={files}
                 notes={NOTES}
@@ -539,19 +568,28 @@ export default function App() {
           onRunSnippet={(sql) => execute(sql)}
           onOpenInEditor={openInEditor}
           onOpenNote={(id) => openTab(noteTabId(id))}
+          er={activeEr && { ...activeEr, schema: schemas[activeEr.db] }}
+          onFocusEr={(table) => focusEr(activeEr.id, activeEr.db, table)}
+          onShowDatabaseEr={() => focusEr(activeEr.id, activeEr.db, null)}
           databases={databases}
           activeDb={activeDb}
           onSelectDb={selectDb}
           running={running}
           onRun={(mode) => runRef.current(mode)}
           onFormat={formatEditor}
+          outputOpen={outputOpen}
+          onToggleOutput={() => setOutputOpen((open) => !open)}
         />
-        <Splitter onDrag={(dx) => setRightWidth((w) => clamp(w - dx, 260, Math.max(320, window.innerWidth - 560)))} />
-        <div className="output-wrap" style={{ width: rightWidth }}>
-          <OutputPane runs={runs} running={running} onClear={() => setRuns([])} />
-        </div>
+        {outputOpen && (
+          <>
+            <Splitter onDrag={(dx) => setRightWidth((w) => clamp(w - dx, 260, Math.max(320, window.innerWidth - 560)))} />
+            <div className="output-wrap" style={{ width: rightWidth }}>
+              <OutputPane runs={runs} running={running} onClearHistory={() => setRuns([])} onClose={() => setOutputOpen(false)} />
+            </div>
+          </>
+        )}
       </div>
-      <StatusBar activeDb={activeDb} pgVersion={pgVersion} status={status} cursor={cursor} showCursor={Boolean(editorFile) && !activeNote} />
+      <StatusBar activeDb={activeDb} pgVersion={pgVersion} status={status} cursor={cursor} showCursor={Boolean(editorFile) && !activeNote && !activeEr} />
     </div>
   )
 }

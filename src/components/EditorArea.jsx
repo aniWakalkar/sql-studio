@@ -1,6 +1,9 @@
 import Editor from '@monaco-editor/react'
 import NoteView from './NoteView.jsx'
+import ErTab from './ErTab.jsx'
 import { modelPath } from '../util.js'
+
+const TAB_ICONS = { sql: 'database icon-sqlfile', note: 'markdown icon-md', er: 'type-hierarchy icon-er' }
 
 const EDITOR_OPTIONS = {
   fontSize: 14,
@@ -23,9 +26,12 @@ export default function EditorArea({
   tabs, activeTab, onSelectTab, onCloseTab, onNewFile, onRenameFile,
   editorFile, onChange, onMount,
   note, notes, onRunSnippet, onOpenInEditor, onOpenNote,
+  er, onFocusEr, onShowDatabaseEr,
   databases, activeDb, onSelectDb, running, onRun, onFormat,
+  outputOpen, onToggleOutput,
 }) {
-  const noteActive = Boolean(note)
+  // a note or an ER diagram is showing instead of the SQL editor
+  const viewActive = Boolean(note || er)
 
   return (
     <main className="editor-area">
@@ -51,7 +57,7 @@ export default function EditorArea({
               onDoubleClick={() => t.kind === 'sql' && onRenameFile(t.id)}
               title={t.kind === 'sql' ? `${t.name} — double-click to rename` : t.name}
             >
-              <i className={`codicon codicon-${t.kind === 'note' ? 'markdown icon-md' : 'database icon-sqlfile'}`} />
+              <i className={`codicon codicon-${TAB_ICONS[t.kind]}`} />
               <span className="tab-name">{t.name}</span>
               <button
                 className="tab-close"
@@ -69,9 +75,16 @@ export default function EditorArea({
         <button className="icon-btn tab-add" title="New query file (Alt+N)" onClick={() => onNewFile()}>
           <i className="codicon codicon-add" />
         </button>
+        <span className="spacer" />
+        {/* Only when the Output panel is closed; while it is open, its own ✕ closes it */}
+        {!outputOpen && (
+          <button className="icon-btn tab-panel-toggle" title="Show the Output panel (Ctrl+J)" onClick={onToggleOutput}>
+            <i className="codicon codicon-layout-sidebar-right-off" />
+          </button>
+        )}
       </div>
 
-      {!noteActive && editorFile && (
+      {!viewActive && editorFile && (
         <div className="toolbar">
           <span className="breadcrumb">
             <i className="codicon codicon-database" />
@@ -91,16 +104,13 @@ export default function EditorArea({
           <button className="tool-btn" title="Format SQL (Shift+Alt+F)" onClick={onFormat}>
             <i className="codicon codicon-list-flat" /> Format
           </button>
-          <button className="tool-btn" title="Run the statement under the cursor (Ctrl+Enter)" disabled={running} onClick={() => onRun('statement')}>
-            <i className="codicon codicon-debug-line-by-line" /> Statement
-          </button>
           <button className="run-btn" title="Run the selection, or the whole file if nothing is selected (F5)" disabled={running} onClick={() => onRun('all')}>
             <i className={`codicon ${running ? 'codicon-loading codicon-modifier-spin' : 'codicon-play'}`} /> Run
           </button>
         </div>
       )}
 
-      <div className="editor-host" hidden={noteActive || !editorFile}>
+      <div className="editor-host" hidden={viewActive || !editorFile}>
         {editorFile && (
           <Editor
             theme="vs-dark"
@@ -115,7 +125,7 @@ export default function EditorArea({
         )}
       </div>
 
-      {!noteActive && !editorFile && (
+      {!viewActive && !editorFile && (
         <div className="empty-editor">
           <i className="codicon codicon-database" />
           <p>No query file is open.</p>
@@ -126,8 +136,12 @@ export default function EditorArea({
         </div>
       )}
 
-      {noteActive && (
+      {note && (
         <NoteView note={note} notes={notes} onRun={onRunSnippet} onOpenInEditor={onOpenInEditor} onOpenNote={onOpenNote} />
+      )}
+
+      {er && (
+        <ErTab db={er.db} table={er.table} schema={er.schema} onFocusTable={onFocusEr} onShowDatabase={onShowDatabaseEr} />
       )}
     </main>
   )

@@ -27,6 +27,16 @@ export function remove(key) {
 
 export const isNoteTab = (id) => typeof id === 'string' && id.startsWith('note:')
 export const noteTabId = (noteId) => `note:${noteId}`
+
+// ER diagram tabs: "er:company" (whole database) or "er:company:employees" (one table)
+export const isErTab = (id) => typeof id === 'string' && id.startsWith('er:')
+export const erTabId = (db, table) => (table ? `er:${db}:${table}` : `er:${db}`)
+export function parseErTab(id) {
+  const [db, ...rest] = id.slice(3).split(':')
+  return { db, table: rest.join(':') || null }
+}
+// Tabs that show something other than the SQL editor
+export const isViewTab = (id) => isNoteTab(id) || isErTab(id)
 export const newId = () => Math.random().toString(36).slice(2, 10)
 export const modelPath = (fileId) => `inmemory://sqlstudio/${fileId}.sql`
 export const clamp = (value, min, max) => Math.min(max, Math.max(min, value))

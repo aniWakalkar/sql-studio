@@ -1,0 +1,54 @@
+/* ER diagram views. Card sizes must match CARD_W / HEAD_H / ROW_H in erModel.js */
+.er-canvas { position: relative; }
+.er-lines { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.er-line { fill: none; stroke: #4daafc; stroke-width: 1.6; opacity: 0.85; }
+.er-dot { fill: #c586c0; }
+
+.er-card {
+  position: absolute;
+  box-sizing: border-box;
+  background: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  padding-bottom: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.er-card.focus { border-color: var(--accent); box-shadow: 0 0 0 2px #0078d455, 0 2px 8px rgba(0, 0, 0, 0.35); }
+.er-card-head {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: #2d2d30;
+  border-bottom: 1px solid #3c3c3c;
+  color: var(--fg-strong);
+  font-weight: 600;
+}
+.er-card.focus .er-card-head { background: #0e3a5c; }
+.er-card-head .codicon { color: #4ec9b0; }
+.er-card-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.er-card-rows { font-size: 11px; font-weight: 400; color: var(--fg-dim); }
+.er-row { box-sizing: border-box; display: flex; align-items: center; gap: 6px; padding: 0 10px; font-size: 12.5px; }
+.er-row .codicon { font-size: 13px; color: #75beff; }
+.er-row .codicon.pk { color: #e2c08d; }
+.er-row .codicon.fk { color: #c586c0; }
+.er-row.linked { background: #0078d41f; }
+.er-col { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.er-type { font: 11px var(--mono); color: var(--fg-dim); }
+
+/* ER tab */
+.er-tab { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.er-tab-body { flex: 1; overflow: auto; padding: 4px 24px 40px; }
+.er-message { margin: 10px 0 4px; display: flex; align-items: center; gap: 6px; }
+.er-message.error { color: var(--error); }
+.er-card-head.clickable { cursor: pointer; }
+.er-card-head.clickable:hover .er-card-name { color: #4daafc; text-decoration: underline; }
+.er-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 0 0 12px; font-size: 12px; color: var(--fg-dim); }
+.er-legend .codicon { font-size: 13px; margin-left: 8px; }
+.er-legend .codicon:first-child { margin-left: 0; }
+.er-legend .pk { color: #e2c08d; }
+.er-legend .fk { color: #c586c0; }
+.er-legend-arrow { color: #4daafc; margin-left: 6px; letter-spacing: -1px; }
+.icon-er { color: #4daafc; }

@@ -1,6 +1,8 @@
 # SQL – Interview Notes
 
-![How Database, DBMS, RDBMS and SQL relate](images/db-relationship.svg)
+<p align="center">
+  <img src="images/db-relationship.svg" alt="How Database, DBMS, RDBMS and SQL relate" />
+</p>
 
 ## The Big Picture
 
@@ -75,6 +77,72 @@ It is used to create, read, update and delete data (CRUD), and to define and con
 | Examples       | MySQL, PostgreSQL, Oracle    | MongoDB, Redis, Cassandra       |
 
 > **Interview tip:** Choose SQL when data is structured and consistency matters (e.g. banking). Choose NoSQL when data is unstructured, changes often, or needs massive scale.
+
+### SQL vs NoSQL – Same Idea, Different Names
+
+NoSQL terms below use **MongoDB**, the most common NoSQL database in interviews.
+
+| SQL (MySQL, PostgreSQL) | NoSQL (MongoDB) | Meaning |
+|-------------------------|-----------------|---------|
+| **Database** | **Database** | A container that holds all your data |
+| **Table** | **Collection** | A group of similar records (e.g. all employees) |
+| **Row** (record / tuple) | **Document** | One record, e.g. one employee |
+| **Column** (attribute) | **Field** | One piece of information, e.g. `salary` |
+| **Schema** (fixed, defined first) | **Schema-less / flexible schema** | SQL: every row must follow the table's columns. MongoDB: each document can have different fields |
+| **Primary key** | **`_id`** | Unique id of each record. MongoDB adds `_id` automatically |
+| **Foreign key** | **Reference** (store another document's `_id`) | Link to a record in another table / collection |
+| **JOIN** | **Embedding** or **`$lookup`** | Combine related data. MongoDB usually keeps related data inside one document instead |
+| **Index** | **Index** | Makes searching faster (same idea in both) |
+| **View** | **View** | A saved, read-only query result |
+| **SQL query** (`SELECT`) | **Query / find()** (`db.employees.find()`) | How you read data |
+| **GROUP BY** | **Aggregation pipeline** (`$group`) | Group and summarise data |
+| **Transaction (ACID)** | **Transaction** (supported, but used less) | Several changes that succeed or fail together |
+| **Server / instance** | **Server (`mongod`)** | One running database program |
+| **Replication** (primary + replicas) | **Replica set** | Copies of the same data on several servers, so it keeps working if one fails |
+| **Partitioning / sharding** | **Sharding** (a **shard** = one part of the data) | Splitting a huge dataset across many servers |
+| **Cluster** | **Cluster** | A group of servers working together as one database (a replica set or a sharded cluster). In MongoDB Atlas, the cloud database you create is called a cluster |
+
+### Same Employee, Two Ways
+
+**SQL:** a row in the `employees` table. The department is in another table, linked by `dept_id`:
+
+| emp_id | name | salary | dept_id |
+|--------|------|--------|---------|
+| 1 | Rahul Sharma | 90000 | 20 |
+
+```sql
+SELECT e.name, d.dept_name
+FROM employees e
+JOIN departments d ON e.dept_id = d.dept_id
+WHERE e.emp_id = 1;
+```
+
+**MongoDB:** a document in the `employees` collection. Related data can sit inside it (embedded), so no JOIN is needed:
+
+```json
+{
+  "_id": 1,
+  "name": "Rahul Sharma",
+  "salary": 90000,
+  "department": { "name": "IT", "location": "Pune" },
+  "skills": ["SQL", "Python"]
+}
+```
+
+```js
+db.employees.find({ _id: 1 }, { name: 1, "department.name": 1 })
+```
+
+> Notice: `skills` is a list inside the document. In SQL this would need a separate `employee_skills` table.
+
+### Quick Memory Trick
+
+```
+SQL:     Database → Table      → Row      → Column
+MongoDB: Database → Collection → Document → Field
+```
+
+> **Interview tip:** "Schema-less" does not mean "no structure". It means the database does not **force** one structure. Each document can look different, and your app decides the shape.
 
 ---
 
