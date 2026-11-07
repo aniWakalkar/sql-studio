@@ -3,11 +3,16 @@ import { focusedLayout, neighbourhood, relationsOf, wholeLayout } from '../er/er
 import { CardsDiagram } from '../er/ErViews.jsx'
 
 const BODY_PADDING = 48
+const MIN_ZOOM = 0.25
+const MAX_ZOOM = 2
+const ZOOM_STEP = 0.1
+const clampZoom = (z) => Math.round(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z)) * 100) / 100
 
 export default function ErTab({ db, table, schema, onFocusTable, onShowDatabase }) {
   const bodyRef = useRef(null)
   const [bodyWidth, setBodyWidth] = useState(0)
-  const [fit, setFit] = useState(true)
+  const [zoomLevel, setZoomLevel] = useState(null) // null = fit to the panel
+  const zoomRef = useRef(1)
 
   // Watch the panel width so "Fit" can shrink the diagram to fit it
   useEffect(() => {
@@ -18,12 +23,27 @@ export default function ErTab({ db, table, schema, onFocusTable, onShowDatabase 
     return () => observer.disconnect()
   }, [])
 
+  // Ctrl + mouse wheel zooms the diagram (needs a non-passive listener to stop the page zooming)
+  useEffect(() => {
+    const el = bodyRef.current
+    if (!el) return
+    const onWheel = (e) => {
+      if (!e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+      setZoomLevel(clampZoom(zoomRef.current + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP)))
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
   const tables = Array.isArray(schema) ? schema : null
   const exists = !table || tables?.some((t) => t.name === table)
   const ready = tables && exists && tables.length > 0
   const edges = tables ? relationsOf(tables) : []
   const layout = ready ? (table ? focusedLayout(tables, edges, table) : wholeLayout(tables, edges)) : null
-  const zoom = layout && fit && bodyWidth ? Math.min(1, Math.max(0.35, (bodyWidth - BODY_PADDING) / layout.width)) : 1
+  const fitZoom = layout && bodyWidth ? clampZoom(Math.min(1, (bodyWidth - BODY_PADDING) / layout.width)) : 1
+  const zoom = zoomLevel ?? fitZoom
+  zoomRef.current = zoom
   const n = table && ready ? neighbourhood(edges, table) : null
   const connected = n ? new Set([...n.parents.map((e) => e.to), ...n.children.map((e) => e.from)]).size : 0
 
@@ -44,9 +64,20 @@ export default function ErTab({ db, table, schema, onFocusTable, onShowDatabase 
         </span>
         <span className="spacer" />
         {layout && (
-          <button className="tool-btn" title={fit ? 'Show at full size (scroll to see everything)' : 'Shrink to fit the panel'} onClick={() => setFit(!fit)}>
-            <i className={`codicon codicon-${fit ? 'zoom-in' : 'screen-normal'}`} /> {fit ? '100%' : 'Fit'}
-          </button>
+          <span className="er-zoom">
+            <button className="icon-btn" title="Zoom out (Ctrl + mouse wheel)" disabled={zoom <= MIN_ZOOM} onClick={() => setZoomLevel(clampZoom(zoom - ZOOM_STEP))}>
+              <i className="codicon codicon-zoom-out" />
+            </button>
+            <button className="er-zoom-value" title="Reset to 100%" onClick={() => setZoomLevel(1)}>
+              {Math.round(zoom * 100)}%
+            </button>
+            <button className="icon-btn" title="Zoom in (Ctrl + mouse wheel)" disabled={zoom >= MAX_ZOOM} onClick={() => setZoomLevel(clampZoom(zoom + ZOOM_STEP))}>
+              <i className="codicon codicon-zoom-in" />
+            </button>
+            <button className={`tool-btn ${zoomLevel === null ? 'active' : ''}`} title="Shrink to fit the panel" onClick={() => setZoomLevel(null)}>
+              <i className="codicon codicon-screen-normal" /> Fit
+            </button>
+          </span>
         )}
         {table && (
           <button className="tool-btn" title="Show every table in this database" onClick={onShowDatabase}>

@@ -52,3 +52,8 @@
 .er-legend .fk { color: #c586c0; }
 .er-legend-arrow { color: #4daafc; margin-left: 6px; letter-spacing: -1px; }
 .icon-er { color: #4daafc; }
+.er-zoom { display: inline-flex; align-items: center; gap: 2px; }
+.er-zoom-value { min-width: 46px; height: 22px; border: 0; border-radius: 4px; background: none; color: var(--fg); font-size: 12px; cursor: pointer; }
+.er-zoom-value:hover { background: rgba(90, 93, 94, 0.31); }
+.er-zoom .tool-btn { margin-left: 4px; }
+.er-zoom .tool-btn.active { border-color: var(--accent); color: var(--fg-strong); }

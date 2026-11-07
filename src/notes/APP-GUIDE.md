@@ -42,7 +42,7 @@ Hover over a table or database in the Explorer and click the **diagram icon** (n
 
 - 🔑 = primary key, 🔗 = foreign key. Each arrow goes from a foreign key to the primary key it points to.
 - Click a table's name in the diagram to see the diagram for that table.
-- The diagram shrinks to fit the panel. Click **100%** to see it full size.
+- Zoom with the **−** / **+** buttons or <kbd>Ctrl</kbd> + mouse wheel. Click the **%** to go back to 100%, or **Fit** to fit the panel.
 
 Try it:
 
