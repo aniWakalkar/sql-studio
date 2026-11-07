@@ -35,9 +35,11 @@ function CodeBlock({ node, children, onRun, onOpenInEditor }) {
       <div className="code-actions">
         {isSql && (
           <>
+            {/* Run button hidden for now; uncomment to run note examples directly
             <button title="Run this query (results appear on the right)" onClick={() => onRun(text)}>
               <i className="codicon codicon-play" /> Run
             </button>
+            */}
             <button title="Add this query to your query file" onClick={() => onOpenInEditor(text)}>
               <i className="codicon codicon-go-to-file" /> Open in editor
             </button>

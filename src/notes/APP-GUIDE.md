@@ -21,7 +21,7 @@ Your query files and data are saved automatically **in this browser**.
 | <kbd>Ctrl</kbd> + <kbd>Enter</kbd> | The **statement under the cursor** (it flashes blue) |
 | Select a query, then <kbd>Enter</kbd> | Just the **selected** text |
 | ▶ next to a table in the Explorer | `SELECT * FROM that_table;` |
-| **Run** button on a code block in the notes | That example query |
+| **Open in editor** on a code block in the notes | Adds the example to your file and selects it. Press <kbd>Enter</kbd> to run it |
 
 If a query has an error, the wrong word gets a **red underline** in the editor. Hover over it to read the message.
 
