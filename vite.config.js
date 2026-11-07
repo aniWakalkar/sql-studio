@@ -1,7 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
+export default defineConfig(({ command, isPreview }) => ({
+  // GitHub Pages serves the site from https://aniwakalkar.github.io/sql-studio/
+  base: command === 'build' || isPreview ? '/sql-studio/' : '/',
   plugins: [react()],
   // PGlite ships its own WebAssembly files and must not be pre-bundled
   optimizeDeps: { exclude: ['@electric-sql/pglite'] },
@@ -14,4 +16,4 @@ export default defineConfig({
     port: 7341, // uncommon port, unlikely to clash with other dev tools
     strictPort: true,
   },
-})
+}))

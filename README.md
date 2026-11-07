@@ -13,6 +13,10 @@ npm install      # first time only
 npm run dev      # opens http://localhost:7341 in your browser
 ```
 
+## Live demo
+
+https://aniwakalkar.github.io/sql-studio/  (deployed automatically by `.github/workflows/deploy.yml` on every push to `master`)
+
 ## What's inside
 
 - **Explorer (left):** databases with their tables and columns, query files, and notes
