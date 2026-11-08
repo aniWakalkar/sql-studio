@@ -170,6 +170,12 @@ export default function App() {
             live.current.databases = list
             setDatabases(list)
           },
+          renameDatabase: async (from, to) => {
+            const list = await dbm.renameDatabase(from, to)
+            live.current.databases = list
+            setDatabases(list)
+            setSchemas(({ [from]: tables, ...rest }) => ({ ...rest, [to]: tables }))
+          },
           dropDatabase: async (name) => {
             const list = await dbm.dropDatabase(name)
             live.current.databases = list

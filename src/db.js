@@ -34,12 +34,16 @@ export function getDatabase(name) {
   return instances.get(name)
 }
 
-export async function createDatabase(name) {
-  const list = loadDatabaseList()
+function checkNewName(name, list) {
   if (!/^[a-z_][a-z0-9_]{0,40}$/.test(name)) {
     throw new Error(`invalid database name "${name}". Use lowercase letters, numbers and _ (must not start with a number)`)
   }
   if (list.includes(name)) throw new Error(`database "${name}" already exists`)
+}
+
+export async function createDatabase(name) {
+  const list = loadDatabaseList()
+  checkNewName(name, list)
   await getDatabase(name)
   const next = [...list, name]
   save('databases', next)
@@ -62,6 +66,29 @@ export async function dropDatabase(name) {
   await deleteStore(name)
   remove(`seeded.${name}`)
   const next = list.filter((n) => n !== name)
+  save('databases', next)
+  return next
+}
+
+/** ALTER DATABASE old RENAME TO new: copy the data files to the new name, then delete the old ones. */
+export async function renameDatabase(oldName, newName) {
+  const list = loadDatabaseList()
+  if (!list.includes(oldName)) throw new Error(`database "${oldName}" does not exist`)
+  checkNewName(newName, list)
+
+  const source = await getDatabase(oldName)
+  const files = await source.dumpDataDir('none')
+  const copy = await PGlite.create(`idb://${STORE_PREFIX}${newName}`, { parsers, loadDataDir: files })
+  instances.set(newName, Promise.resolve(copy))
+  // the copy already has its data, so a practice-database name must not be filled again
+  if (isDefaultDatabase(newName)) save(`seeded.${newName}`, true)
+
+  instances.delete(oldName)
+  await source.close()
+  await deleteStore(oldName)
+  remove(`seeded.${oldName}`)
+
+  const next = list.map((n) => (n === oldName ? newName : n))
   save('databases', next)
   return next
 }

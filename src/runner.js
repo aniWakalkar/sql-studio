@@ -16,7 +16,7 @@ ORDER BY ordinal_position`
 /**
  * Run every statement in `sql`, one at a time, stopping at the first error.
  *
- * ctx = { dbName, getDatabase(name), listDatabases(), createDatabase(name), dropDatabase(name) }
+ * ctx = { dbName, getDatabase(name), listDatabases(), createDatabase(name), renameDatabase(from, to), dropDatabase(name) }
  */
 export async function runScript(sql, ctx) {
   const statements = splitStatements(sql)
@@ -90,6 +90,20 @@ async function runStatement(text, dbName, ctx) {
     if (name === dbName) throw new Error(`cannot drop the currently open database "${name}". Switch to another one first, e.g. USE other_db;`)
     await ctx.dropDatabase(name)
     return { blocks: [{ kind: 'message', message: `DROP DATABASE — "${name}" deleted` }] }
+  }
+
+  if ((m = /^alter database "?(\w+)"? rename to "?(\w+)"?$/i.exec(cmd))) {
+    const from = m[1].toLowerCase()
+    const to = m[2].toLowerCase()
+    if (!ctx.listDatabases().includes(from)) throw new Error(`database "${from}" does not exist`)
+    if (from === dbName) {
+      // same rule as real PostgreSQL
+      const err = new Error('current database cannot be renamed')
+      err.hint = `Switch to another database first, e.g. USE ${ctx.listDatabases().find((n) => n !== from) ?? 'other_db'};`
+      throw err
+    }
+    await ctx.renameDatabase(from, to)
+    return { touched: [to], blocks: [{ kind: 'message', message: `ALTER DATABASE — "${from}" renamed to "${to}"` }] }
   }
 
   if (/^(?:show databases|\\l)$/i.test(cmd)) {

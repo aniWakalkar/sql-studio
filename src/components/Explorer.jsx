@@ -137,7 +137,8 @@ export default function Explorer({
   databases, activeDb, schemas, onSelectDb, onRefresh, onNewDb, onResetDb, onDeleteDb, onRunTable, onOpenEr, onInsert,
   files, notes, activeTab, onOpenFile, onNewFile, onRenameFile, onDeleteFile, onOpenNote,
 }) {
-  const [expanded, setExpanded] = useState(() => new Set([`db:${activeDb}`]))
+  // everything starts collapsed; databases and tables open only when clicked
+  const [expanded, setExpanded] = useState(() => new Set())
   const toggle = (key) =>
     setExpanded((prev) => {
       const next = new Set(prev)
