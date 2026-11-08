@@ -51,6 +51,24 @@ function markError({ model, base }, error) {
   }])
 }
 
+// Theme colours used by Monaco's right-click menu (see defaultMenuStyles in monaco-editor)
+const MENU_COLOR_VARS = [
+  '--vscode-menu-background', '--vscode-menu-foreground', '--vscode-menu-border', '--vscode-editorWidget-border',
+  '--vscode-menu-selectionBorder', '--vscode-menu-separatorBackground', '--vscode-list-hoverBackground',
+  '--vscode-list-hoverForeground', '--vscode-widget-shadow', '--vscode-disabledForeground', '--vscode-scrollbar-shadow',
+  '--vscode-scrollbarSlider-background', '--vscode-scrollbarSlider-hoverBackground', '--vscode-scrollbarSlider-activeBackground',
+]
+
+// Monaco draws its right-click menu outside the editor, where the theme colours are not defined,
+// so the menu came out transparent. Copy those colours to the page so the menu can use them.
+function shareMenuColors(editor) {
+  const style = getComputedStyle(editor.getDomNode())
+  for (const name of MENU_COLOR_VARS) {
+    const value = style.getPropertyValue(name)
+    if (value) document.documentElement.style.setProperty(name, value)
+  }
+}
+
 // Briefly highlight the statement that Ctrl+Enter is about to run
 function flashRange(editor, model, startOffset, endOffset) {
   const s = model.getPositionAt(startOffset)
@@ -429,6 +447,7 @@ export default function App() {
 
   const handleMount = useCallback((editor) => {
     editorRef.current = editor
+    shareMenuColors(editor)
     const { KeyMod, KeyCode } = monaco
     editor.addAction({
       id: 'sql.runStatement',
