@@ -163,7 +163,8 @@ kbd {
   align-items: center;
   gap: 6px;
   padding: 0 6px 0 12px;
-  min-width: 0;
+  flex: none; /* tabs keep their width; the tab bar scrolls when they don't all fit */
+  max-width: 220px;
   border-right: 1px solid var(--border);
   border-top: 1px solid transparent;
   color: #9d9d9d;
@@ -172,11 +173,13 @@ kbd {
 }
 .tab.active { background: var(--bg); color: #fff; border-top-color: var(--accent); }
 .tab:hover:not(.active) { background: #1f1f1f; }
-.tab-close { border: 0; background: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; visibility: hidden; display: flex; align-items: center; justify-content: center; }
+.tab > .codicon { flex: none; }
+.tab-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tab-close { flex: none; border: 0; background: none; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; visibility: hidden; display: flex; align-items: center; justify-content: center; }
 .tab.active .tab-close, .tab:hover .tab-close { visibility: visible; }
 .tab-close:hover { background: rgba(90, 93, 94, 0.31); }
 .tab-add { align-self: center; margin: 0 6px; }
-.tab-panel-toggle { align-self: center; margin-right: 8px; flex: none; }
+.tab-panel-toggle, .tab-close-all { align-self: center; margin-right: 8px; flex: none; }
 
 .toolbar {
   flex: none;

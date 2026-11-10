@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import Editor from '@monaco-editor/react'
 import NoteView from './NoteView.jsx'
 import ErTab from './ErTab.jsx'
@@ -23,7 +24,7 @@ const EDITOR_OPTIONS = {
 }
 
 export default function EditorArea({
-  tabs, activeTab, onSelectTab, onCloseTab, onNewFile, onRenameFile,
+  tabs, activeTab, onSelectTab, onCloseTab, onCloseAllTabs, onNewFile, onRenameFile,
   editorFile, onChange, onMount,
   note, notes, onRunSnippet, onOpenInEditor, onOpenNote,
   er, onFocusEr, onShowDatabaseEr,
@@ -33,11 +34,18 @@ export default function EditorArea({
   // a note or an ER diagram is showing instead of the SQL editor
   const viewActive = Boolean(note || er)
 
+  // Keep the active tab visible when there are more tabs than fit
+  const tabsRef = useRef(null)
+  useEffect(() => {
+    tabsRef.current?.querySelector('.tab.active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [activeTab, tabs.length])
+
   return (
     <main className="editor-area">
       <div className="tabbar">
         <div
           className="tabs"
+          ref={tabsRef}
           onWheel={(e) => {
             // no visible scrollbar: the mouse wheel scrolls the tabs sideways
             e.currentTarget.scrollLeft += e.deltaY
@@ -76,6 +84,11 @@ export default function EditorArea({
           <i className="codicon codicon-add" />
         </button>
         <span className="spacer" />
+        {tabs.length > 0 && (
+          <button className="icon-btn tab-close-all" title="Close all tabs (your files are kept)" onClick={onCloseAllTabs}>
+            <i className="codicon codicon-close-all" />
+          </button>
+        )}
         {/* Only when the Output panel is closed; while it is open, its own ✕ closes it */}
         {!outputOpen && (
           <button className="icon-btn tab-panel-toggle" title="Show the Output panel (Ctrl+J)" onClick={onToggleOutput}>

@@ -282,6 +282,12 @@ export default function App() {
     if (live.current.activeTab === id) setActiveTab(next[i] ?? next[i - 1] ?? null)
   }, [])
 
+  // Only closes the tabs: query files stay in the Explorer
+  const closeAllTabs = useCallback(() => {
+    setOpenTabs([])
+    setActiveTab(null)
+  }, [])
+
   // ER diagram of a whole database (table = null) or of one table and the tables connected to it
   const openEr = useCallback(
     (db, table = null) => {
@@ -583,6 +589,7 @@ export default function App() {
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           onCloseTab={closeTab}
+          onCloseAllTabs={closeAllTabs}
           onNewFile={newFile}
           onRenameFile={renameFile}
           editorFile={editorFile}
